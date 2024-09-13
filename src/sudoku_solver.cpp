@@ -16,40 +16,34 @@ void Sudoku_Solver::generate_permutations()
 	} while (std::next_permutation(numbers.begin(), numbers.end()));
 }
 
-// serve una funzione ric:
-// function (std::vector<int> *current_nodes, int level, int vec_idx)
-// questa funzione se non c'è un numero nella posizione [i][j]
-// prende l'elemento [0], se c'è (controllare), e lo mette, se ci sono problemi dopo tornando si
-// fa [1], [2], ...
-// forse serve un array dove vengono scritti gli elementi già usati, non sono sicuro.
 
 void Sudoku_Solver::solve_board()
 {
 	// read line by line
 	for (int i = 0; i < board.BOARD_SIZE; ++i)
 	{
-		std::vector<int> correct_sequence;
+		int correct_sequence[board.BOARD_SIZE];
 		bool is_sequence_ok = true;
+
+		for (int j = 0; j < board.BOARD_SIZE; ++j)
+			// correct_sequence.push_back(board.get_number_at(i, j));
+			correct_sequence[j] = board.get_number_at(i, j);
 
 		// find a sequence of numbers for each line
 		foo_rec(&graph.nodes, correct_sequence, i, 0, is_sequence_ok);
 
-		std::cout << "\ncorrect_sequence i = " << i << " ---> ";
+		// std::cout << "\ncorrect_sequence i = " << i << " ---> ";
 		for (int j = 0; j < board.BOARD_SIZE; ++j)
 		{
 			board.set_number_at(correct_sequence[j], i, j);
-			std::cout << board.get_number_at(i, j) << ", ";
+			// std::cout << board.get_number_at(i, j) << ", ";
 		}
-		std::cout << '\n';
-
-		// REMEMBER: you have to check the y line for each number putted in the x line
-		// insert a number in each line_x which is not present in line_y and sub_matrix!
-		// int usable_nodes_idx = 0;
+		// std::cout << '\n';
 	}
 }
 
 
-void Sudoku_Solver::foo_rec(const std::vector<Node> *current_nodes, std::vector<int> &correct_sequence, int i, int j, bool &is_sequence_ok)
+void Sudoku_Solver::foo_rec(const std::vector<Node> *current_nodes, int correct_sequence[], int i, int j, bool &is_sequence_ok)
 {
 	if (j == board.BOARD_SIZE) return;
 
@@ -65,43 +59,31 @@ void Sudoku_Solver::foo_rec(const std::vector<Node> *current_nodes, std::vector<
 
 		if (it == current_nodes->end())
 		{
-			std::cout << '\n' << "Element " << current_number << " not found." << '\n';
-			
 			// it means that a previous incorrect node was used, so it has to go back
 			// and take the next node of that.
 
+			std::cout << '\n' << "Element " << current_number << " not found." << '\n';
 			is_sequence_ok = false;
 			return;
 		}
 
 		int node_idx = std::distance(current_nodes->begin(), it);
-		// correct_sequence.push_back((*current_nodes)[node_idx].value); // remove *
-		correct_sequence.push_back(current_number);
+		correct_sequence[j] = current_number;
+		
 		foo_rec((*current_nodes)[node_idx].next_nodes.get(), correct_sequence, i, j + 1, is_sequence_ok);
 		
 		if (!is_sequence_ok)
-			correct_sequence.pop_back(); // removed *
+			correct_sequence[j] = 0;
 		
 		return;
 	}
 
-	// do brute force starting from element [0]
 	long unsigned int nodes_idx = 0;
 	long unsigned int end = (*current_nodes)[nodes_idx].next_nodes.get()->size();
 	bool is_there_a_tmp_valid_node = false;
-
-	if (i == 4 && j == 7)
-	{
-		int a = 0;
-	}
 	
 	for (; nodes_idx <= end && !is_there_a_tmp_valid_node; ++nodes_idx)
 	{
-		if (i == 4 && j == 7)
-		{
-			int a = 0;
-		}
-
 		int number_taken_from_sequence = (*current_nodes)[nodes_idx].value; 
 
 		if (!is_number_valid_in_x_line(number_taken_from_sequence, correct_sequence) ||
@@ -110,16 +92,10 @@ void Sudoku_Solver::foo_rec(const std::vector<Node> *current_nodes, std::vector<
 			continue;
 
 		is_there_a_tmp_valid_node = true;
-		correct_sequence.push_back(number_taken_from_sequence); // don't forget also to pop_back() in case it's not ok as a number
+		correct_sequence[j] = number_taken_from_sequence;
 
 		foo_rec((*current_nodes)[nodes_idx].next_nodes.get(), correct_sequence, i, j + 1, is_there_a_tmp_valid_node);
 
-		// if there is a problem with the currently used number, is_there_a_tmp_valid_node is
-		// changed to false in the next function/s. so if we exit the current 'for', we
-		// remove the used number from correct_sequence (pop_back()).
-		// WHAT TO DO THEN?
-
-		// moved it inside the for loop
 		if (!is_there_a_tmp_valid_node) is_sequence_ok = false;
 		
 		else is_sequence_ok = true;
@@ -128,15 +104,15 @@ void Sudoku_Solver::foo_rec(const std::vector<Node> *current_nodes, std::vector<
 	if (!is_there_a_tmp_valid_node)
 	{
 		is_sequence_ok = false;
-		correct_sequence.pop_back();
+		correct_sequence[j] = 0;
 		return;
 	}
 }
 
-bool Sudoku_Solver::is_number_valid_in_x_line(int current_number, std::vector<int> &current_sequence)
+bool Sudoku_Solver::is_number_valid_in_x_line(int current_number, int current_sequence[])
 {
-	for (const int &number : current_sequence)
-		if (number == current_number)
+	for (int i = 0; i < board.BOARD_SIZE; ++i)
+		if (current_sequence[i] == current_number)
 			return false;
 	
 	return true;

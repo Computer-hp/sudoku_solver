@@ -32,7 +32,7 @@ void Board::set_number_at(int number, int y, int x)
 void Board::read_board_from_txt_file()
 {
 	std::ifstream in_file(IN_FILE);
-	// std::ifstream in_file("../data/input.txt");
+	// std::ifstream in_file(IN_FILE2);
 
 	if (!in_file)	
 	{
@@ -73,5 +73,5 @@ void Board::print()
 
 		std::cout << '\n';
 	}
-	std::cout << "\nEND\n";
+	std::cout << "END\n";
 }

@@ -3,6 +3,7 @@
 #include <vector>
 
 #define IN_FILE "data/input.txt"
+#define IN_FILE2 "data/input2.txt"
 #define OUT_FILE "data/output.txt"
 
 class Board
